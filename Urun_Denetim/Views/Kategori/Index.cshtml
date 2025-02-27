@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Urun_Denetim.Models.Kategori>
+
+<h3>Kategoriler</h3>
+<a href="@Url.Action("Create", "Kategori")" class="btn btn-primary mb-3">Yeni Kategori Ekle</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Kategori Adı</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var kategori in Model)
+        {
+            <tr>
+                <td>@kategori.KategoriID</td>
+                <td>@kategori.KategoriAd</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Urun_Denetim.Models.Marka>
+
+<h3>Markalar</h3>
+<a href="@Url.Action("Create", "Marka")" class="btn btn-primary mb-3">Yeni Marka Ekle</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Marka Adı</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var marka in Model)
+        {
+            <tr>
+                <td>@marka.MarkaID</td>
+                <td>@marka.MarkaAd</td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Urun_Denetim", "Urun_Denetim\Urun_Denetim.csproj", "{B93B6A07-7B18-4364-9104-F0A9E3711CF3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B93B6A07-7B18-4364-9104-F0A9E3711CF3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B93B6A07-7B18-4364-9104-F0A9E3711CF3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B93B6A07-7B18-4364-9104-F0A9E3711CF3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B93B6A07-7B18-4364-9104-F0A9E3711CF3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3CA85E86-B0A8-423F-888C-59629502DA6C}
+	EndGlobalSection
+EndGlobal

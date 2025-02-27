@@ -1,0 +1,17 @@
+﻿@model Urun_Denetim.Models.Kategori
+
+@{
+    ViewData["Title"] = "Yeni Kategori Ekle";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="container">
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <label for="KategoriAd">Kategori Adı</label>
+            <input type="text" class="form-control" id="KategoriAd" name="KategoriAd" required />
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Ekle</button>
+    </form>
+</div>

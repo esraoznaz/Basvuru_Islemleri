@@ -1,0 +1,17 @@
+﻿@model Urun_Denetim.Models.Marka
+
+@{
+    ViewData["Title"] = "Yeni Marka Ekle";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<div class="container">
+    <form asp-action="Create" method="post">
+        <div class="form-group">
+            <label for="MarkaAd">Marka Adı</label>
+            <input type="text" class="form-control" id="MarkaAd" name="MarkaAd" required />
+        </div>
+        <button type="submit" class="btn btn-success mt-3">Ekle</button>
+    </form>
+</div>

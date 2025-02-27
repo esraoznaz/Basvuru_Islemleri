@@ -1,0 +1,62 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+/* Privacy.cshtml css kodlarý */
+/* Yan menü tam olarak sola yaslanacak */
+/* Yan Menüyü Sabitle */
+.left-menu {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 200px; /* Menünün geniþliði */
+    height: 100%; /* Ekranýn tamamýný kaplar */
+    background-color: #f8f9fa; /* Menünün arka plan rengi */
+    padding-top: 20px; /* Menüdeki öðelerin üst kýsmýndaki boþluk */
+    border-right: 1px solid #ddd; /* Sað kenar çizgisi */
+    z-index: 1000; /* Menü üstte görünsün */
+}
+
+/* Menünün linklerinin stilleri */
+.list-group-item {
+    padding: 15px 20px;
+    font-size: 16px;
+}
+
+.list-group-item-action {
+    cursor: pointer;
+}
+
+/* Ekran boyutu küçüldüðünde menülerin kaybolmamasý için */
+@media (max-width: 768px) {
+    .left-menu {
+        position: fixed;
+        width: 200px;
+        height: 100%;
+    }
+}
+
+/* Ýçerik saðda görünen alan */
+.col-md-10 {
+    margin-left: 220px; /* Yan menü geniþliðini dikkate alarak içerik alanýný saða kaydýrma */
+    padding: 20px;
+}
+
