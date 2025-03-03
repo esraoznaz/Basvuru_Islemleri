@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Güncelleme Sayfası</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 300px;
+            margin: 50px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        h2 {
+            color: gray;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Bilgi Güncelle</h2>
+        <form id="guncelleForm">
+            <!-- Kullanıcıdan alınacak bilgileri içeren form alanları -->
+            <input type="text" id="isim" placeholder="İsim" required>
+            <input type="text" id="soyisim" placeholder="Soyisim" required>
+            <input type="text" id="telno" placeholder="Telefon" required>
+            <input type="text" id="dtarihi" required>
+            <input type="text" id="tc" placeholder="TC Kimlik No" required>
+
+            <!-- İlçe ve Mahalle seçimleri için açılır menüler -->
+            <label for="ilce">İlçe Seç:</label>
+            <select id="ilce" name="ilce">
+                <option value="">İlçe Seç</option>
+            </select>
+
+            <label for="mahalle">Mahalle Seç:</label>
+            <select id="mahalle" name="mahalle">
+                <option value="">Önce İlçe Seçiniz</option>
+            </select>
+
+            <button type="submit">Kaydet</button>
+        </form>
+    </div>
+
+    <script>
+        // Sayfa tamamen yüklendiğinde çalışacak işlemler
+        document.addEventListener("DOMContentLoaded", function () {
+            console.log("Sayfa yüklendi");
+
+            // URL'den başvuru ID'sini al
+            const basvuruId = getQueryParam("id");
+            if (!basvuruId) {
+                alert("Geçerli bir başvuru ID bulunamadı!");
+                return;
+            }
+
+            // Token'ı localStorage'dan al
+            const token = localStorage.getItem("jwtToken");
+            if (!token) {
+                alert("Lütfen giriş yapın!");
+                window.location.href = "login.html"; // Eğer token yoksa, login sayfasına yönlendir
+                return;
+            }
+
+            // İlçe ve mahalle dropdownlarını seç
+            const ilceDropdown = document.getElementById("ilce");
+            const mahalleDropdown = document.getElementById("mahalle");
+
+            // İlçe değiştiğinde ilgili mahalleleri yükleme
+            ilceDropdown.addEventListener("change", function () {
+                const secilenIlce = ilceDropdown.value;
+                console.log(`İlçe seçildi: ${secilenIlce}`);
+
+                // Mahalle dropdown'ını temizle
+                mahalleDropdown.innerHTML = '<option value="">Mahalle Seçiniz</option>';
+
+                if (secilenIlce) {
+                    // Seçilen ilçeye ait mahalleleri JSON dosyasından çek
+                    fetch("mahalleler.json")
+                        .then(response => response.json())
+                        .then(mahalleler => {
+                            // Seçilen ilçeye ait mahalleleri filtrele
+                            const filtrelenmisListe = mahalleler.filter(m => m.District_Name === secilenIlce);
+                            filtrelenmisListe.sort((a, b) => a.Name.localeCompare(b.Name));
+
+                            // Mahalleleri dropdown'a ekle
+                            filtrelenmisListe.forEach(mahalle => {
+                                const option = document.createElement("option");
+                                option.value = mahalle.Name;
+                                option.textContent = mahalle.Name;
+                                mahalleDropdown.appendChild(option);
+                            });
+
+                            console.log(`${filtrelenmisListe.length} mahalle eklendi`);
+                        })
+                        .catch(error => console.error("Mahalle verileri yüklenemedi:", error));
+                }
+            });
+
+            // İlçeleri JSON dosyasından yükle
+            fetch("ilceler.json")
+                .then(response => response.json())
+                .then(ilceler => {
+                    // İlçeleri sıralayıp dropdown'a ekle
+                    ilceDropdown.innerHTML = '<option value="">İlçe Seç</option>';
+                    ilceler.sort((a, b) => a.Name.localeCompare(b.Name));
+                    ilceler.forEach(ilce => {
+                        const option = document.createElement("option");
+                        option.value = ilce.Name;
+                        option.textContent = ilce.Name;
+                        ilceDropdown.appendChild(option);
+                    });
+
+                    console.log(`${ilceler.length} ilçe eklendi`);
+
+                    // Başvuru bilgilerini al ve formu doldur
+                    return fetch(`http://10.20.34.56/api/Getir/${basvuruId}`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`, // Authorization başlığına token ekle
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                })
+                .then(response => response.json())
+                .then(basvuru => {
+                    // Form alanlarını doldur
+                    document.getElementById("isim").value = basvuru.isim || "";
+                    document.getElementById("soyisim").value = basvuru.soyisim || "";
+                    document.getElementById("telno").value = basvuru.telno || "";
+                    document.getElementById("dtarihi").value = basvuru.dtarihi ? basvuru.dtarihi.split("T")[0] : "";
+                    document.getElementById("tc").value = basvuru.tc || "";
+
+                    // İlçe ve mahalleyi seçili hale getir
+                    if (basvuru.ilce) {
+                        ilceDropdown.value = basvuru.ilce;
+                        ilceDropdown.dispatchEvent(new Event('change'));
+
+                        setTimeout(() => {
+                            if (basvuru.mahalle) {
+                                mahalleDropdown.value = basvuru.mahalle;
+                            }
+                        }, 500);
+                    }
+                })
+                .catch(error => console.error("Veri yüklenirken hata oluştu:", error));
+
+            // Form gönderildiğinde çalışacak fonksiyon
+            document.getElementById("guncelleForm").addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                // Kullanıcıdan alınan verileri topla
+                const data = {
+                    isim: document.getElementById("isim").value,
+                    soyisim: document.getElementById("soyisim").value,
+                    telno: document.getElementById("telno").value,
+                    dtarihi: document.getElementById("dtarihi").value,
+                    tc: document.getElementById("tc").value,
+                    ilce: ilceDropdown.value,
+                    mahalle: mahalleDropdown.value
+                };
+
+                // Güncelleme isteği gönder
+                fetch(`http://10.20.34.56/api/${basvuruId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`, // Authorization başlığına token ekle
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Veri gönderilemedi.");
+                    return response.json();
+                })
+                .then(() => {
+                    alert("Başarıyla güncellendi!");
+                    window.location.href = "basvuru.html";
+                })
+                .catch(error => console.error("Güncelleme hatası:", error));
+            });
+        });
+
+        // URL'den belirli bir parametreyi almak için yardımcı fonksiyon
+        function getQueryParam(param) {
+            return new URLSearchParams(window.location.search).get(param);
+        }
+    </script>
+</body>
+
+</html>
