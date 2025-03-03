@@ -1,0 +1,102 @@
+[
+  {
+    "Id": 1,
+    "City_Id": 7,
+    "Name": "SERİK"
+  },
+  {
+    "Id": 2,
+    "City_Id": 7,
+    "Name": "KEPEZ"
+  },
+  {
+    "Id": 3,
+    "City_Id": 7,
+    "Name": "KONYAALTI"
+  },
+  {
+    "Id": 4,
+    "City_Id": 7,
+    "Name": "AKSU"
+  },
+  {
+    "Id": 5,
+    "City_Id": 7,
+    "Name": "DÖŞEMEALTI"
+  },
+  {
+    "Id": 6,
+    "City_Id": 7,
+    "Name": "AKSEKİ"
+  },
+  {
+    "Id": 7,
+    "City_Id": 7,
+    "Name": "ALANYA"
+  },
+  {
+    "Id": 8,
+    "City_Id": 7,
+    "Name": "MURATPAŞA"
+  },
+  {
+    "Id": 9,
+    "City_Id": 7,
+    "Name": "ELMALI"
+  },
+  {
+    "Id": 10,
+    "City_Id": 7,
+    "Name": "FİNİKE"
+  },
+  {
+    "Id": 11,
+    "City_Id": 7,
+    "Name": "GAZİPAŞA"
+  },
+  {
+    "Id": 12,
+    "City_Id": 7,
+    "Name": "GÜNDOĞMUŞ"
+  },
+  {
+    "Id": 13,
+    "City_Id": 7,
+    "Name": "KAŞ"
+  },
+  {
+    "Id": 14,
+    "City_Id": 7,
+    "Name": "KORKUTELİ"
+  },
+  {
+    "Id": 15,
+    "City_Id": 7,
+    "Name": "KUMLUCA"
+  },
+  {
+    "Id": 16,
+    "City_Id": 7,
+    "Name": "MANAVGAT"
+  },
+  {
+    "Id": 17,
+    "City_Id": 7,
+    "Name": "DEMRE"
+  },
+  {
+    "Id": 18,
+    "City_Id": 7,
+    "Name": "İBRADI"
+  },
+  {
+    "Id": 19,
+    "City_Id": 7,
+    "Name": "KEMER"
+  },
+  {
+    "Id": 21,
+    "City_Id": 7,
+    "Name": "BELİRTMEK İSTEMİYOR"
+  }
+]

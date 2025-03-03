@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Başvurular</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        #filterButton:disabled {
+            background-color: #ccc;
+        }
+
+        .btn.guncelle {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .btn.sil {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        h2 {
+            text-align: center;
+            text-decoration: underline;
+            color: gray;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        #filterButton,
+        #filterIsim,
+        #filterSoyisim,
+        #filterTC {
+            margin: 10px 5px;
+            padding: 8px;
+
+        }
+
+        .filter-container {
+            text-align: center;
+            /* Filtreleme kısmını ortalar */
+            margin-bottom: 20px;
+            /* Başlığın altına boşluk bırakır */
+
+        }
+
+        .filter-container input {
+            margin-right: 10px;
+        }
+
+        /* Başvuru ID sütununun genişliğini daraltma */
+        table th:nth-child(1),
+        table td:nth-child(1) {
+            width: 60px;
+        
+        }
+
+        .logout-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            background-color: gray;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #cc0000;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>BAŞVURULAR LİSTESİ</h2>
+
+    <div class="filter-container">
+
+        <input type="text" id="filterIsim" placeholder="İsim girin..." oninput="toggleFilterButton()">
+        <input type="text" id="filterSoyisim" placeholder="Soyisim girin..." oninput="toggleFilterButton()">
+        <input type="text" id="filterTC" placeholder="TC girin..." oninput="toggleFilterButton()">
+        <button id="filterButton" onclick="filtrele()" disabled>Filtrele</button>
+
+    </div>
+
+    <table id="basvuruTable">
+        <thead>
+            <tr>
+                <th>Başvuru ID</th>
+                <th>İsim</th>
+                <th>Soyisim</th>
+                <th>Telefon</th>
+                <th>Doğum Tarihi</th>
+                <th>TC</th>
+                <th>İlçe</th>
+                <th>Mahalle</th>
+                <th>Başvuru Tarihi</th>
+                <th>Aktiflik Durumu</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+
+        </tbody>
+    </table>
+
+    <script>
+        let currentPage = 1;
+        const itemsPerPage = 10; // Sayfada 2 başvuru gösterilecek
+        let totalItems = 0;
+        let allData = [];
+        let filterData = [];
+
+        window.onload = function () {
+            const token = localStorage.getItem('jwtToken'); // Token'ı al
+
+            // Token "Kullanıcı Bulunamadı" ise login sayfasına yönlendir
+            if (token == 'Kullanıcı Bulunamadı.') {
+                window.location.href = 'admin.html'; // Giriş sayfasına yönlendir
+                return;
+            }
+
+            // Token yoksa login sayfasına yönlendir
+            if (!token) {
+                alert('Lütfen giriş yapın!');
+                window.location.href = 'admin.html'; // Giriş sayfasına yönlendir
+                return;
+            }
+
+            fetch('http://10.20.34.56/api', {
+                headers: {
+                    'Authorization': `Bearer ${token}`, // Token'ı Authorization başlığına ekle
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    allData = data.filter(item => item.aktif === true); // Sadece aktif olanları al
+                    totalItems = allData.length; // Toplam kayıt sayısını güncelle
+                    displayPagination(); // Sayfalama butonları oluştur
+                    displayData(currentPage); // İlk sayfayı göster
+                })
+                .catch(error => console.error('Başvurular yüklenirken hata:', error));
+        }
+
+        // Verileri görüntüleme fonksiyonu
+        function displayData(page) {
+            const tbody = document.querySelector('#basvuruTable tbody');
+            tbody.innerHTML = ''; // Tabloyu temizle
+
+            const start = (page - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            const paginatedData = allData.slice(start, end); // Sayfalama işlemi
+
+            let displayId = start + 1;
+
+            paginatedData.forEach(basvuru => {
+                tbody.innerHTML += `
+                <tr>
+                    <td>${displayId}</td>
+                    <td>${basvuru.isim || ''}</td>
+                    <td>${basvuru.soyisim || ''}</td>
+                    <td>${basvuru.telno || ''}</td>
+                    <td>${basvuru.dtarihi || ''}</td>
+                    <td>${basvuru.tc || ''}</td>
+                    <td>${basvuru.ilce || ''}</td>
+                    <td>${basvuru.mahalle || ''}</td>
+                    <td>${basvuru.olusturulmaTarihi || ''}</td>
+                    <td>${basvuru.aktif ? 'Aktif' : 'Pasif'}</td>
+                    <td>
+                        <button class="btn guncelle" onclick="guncelle(${basvuru.kresFormId})">Güncelle</button>
+                        <button class="btn sil" onclick="sil(${basvuru.kresFormId})">Sil</button>
+                    </td>
+                </tr>
+                `;
+                displayId++;
+            });
+        }
+
+        // Sayfalama butonları
+        function displayPagination() {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+            const paginationContainer = document.createElement('div');
+            paginationContainer.className = 'pagination';
+            paginationContainer.style.textAlign = 'center';
+            paginationContainer.style.marginTop = '20px';
+
+            let html = `
+            <button onclick="changePage('prev')" ${currentPage === 1 ? 'disabled' : ''} style="margin: 0 5px;">
+                &#8249;
+            </button>
+        `;
+
+            for (let i = 1; i <= totalPages; i++) {
+                html += `
+            <button onclick="changePage(${i})" 
+                    style="margin: 0 5px; ${currentPage === i ? 'background-color: #007bff; color: white;' : ''}"
+                    ${currentPage === i ? 'disabled' : ''}>
+                ${i}
+            </button>
+        `;
+            }
+
+            html += `
+        <button onclick="changePage('next')" ${currentPage === totalPages ? 'disabled' : ''} style="margin: 0 5px;">
+            &#8250;
+        </button>
+    `;
+
+            paginationContainer.innerHTML = html;
+
+            const existingPagination = document.querySelector('.pagination');
+            if (existingPagination) {
+                existingPagination.remove();
+            }
+            document.querySelector('#basvuruTable').after(paginationContainer);
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+            if (page === 'prev') {
+                if (currentPage > 1) {
+                    currentPage--;
+                }
+            } else if (page === 'next') {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                }
+            } else {
+                currentPage = page;
+            }
+
+            displayData(currentPage);
+            displayPagination();
+        }
+
+        // Güncelleme işlemi
+        function guncelle(id) {
+            const token = localStorage.getItem('jwtToken'); // Token'ı al
+
+            fetch(`http://10.20.34.56/api/${id}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ kresFormId: id })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.succes) {
+                        alert("Başarıyla güncellendi.");
+                        location.reload();
+                    } else {
+                        alert("Güncelleme başarısız.");
+                    }
+                })
+                .catch(error => console.error('Güncelleme hatası:', error));
+        }
+
+
+
+
+        // Silme işlemi
+        function sil(id) {
+            const token = localStorage.getItem('jwtToken'); // Token'ı al
+
+            if (confirm("Bu başvuruyu silmek istediğinize emin misiniz?")) {
+                fetch(`http://10.20.34.56/api/Aktif/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        alert("Başarıyla silindi!");
+                        location.reload();
+                    })
+                    .catch(error => {
+                        console.error("Silme hatası:", error);
+                        alert("Silme işlemi başarısız oldu! Lütfen tekrar deneyin.");
+                    });
+            }
+        }
+
+        function guncelle(id) {
+
+            window.location.href = `guncelle.html?id=${id}`;
+
+
+
+        }
+
+        // Filtreleme işlemi
+        function toggleFilterButton() {
+            const isim = document.getElementById("filterIsim").value.trim();
+            const soyisim = document.getElementById("filterSoyisim").value.trim();
+            const tcNo = document.getElementById("filterTC").value.trim();
+
+            const filterButton = document.getElementById("filterButton");
+
+            if (isim || soyisim || tcNo) {
+                filterButton.disabled = false;
+            } else {
+                filterButton.disabled = true;
+            }
+        }
+
+        function filtrele() {
+    const isim = document.getElementById("filterIsim").value.trim();
+    const soyisim = document.getElementById("filterSoyisim").value.trim();
+    const tcNo = document.getElementById("filterTC").value.trim();
+
+    let apiURL = `http://10.20.34.56/api/Filtre?`;
+
+    if (isim) apiURL += `isim=${isim}&`;
+    if (soyisim) apiURL += `soyisim=${soyisim}&`;
+    if (tcNo) apiURL += `tcNo=${tcNo}&`;
+
+    apiURL = apiURL.slice(0, -1);
+
+    const token = localStorage.getItem('jwtToken');
+
+    fetch(apiURL, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Sadece aktif kayıtları filtrele
+        const filteredData = data.filter(item => item.aktif === true);
+        
+        // Filtrelenmiş verileri global değişkene ata
+        allData = filteredData;
+        
+        // Toplam kayıt sayısını güncelle
+        totalItems = filteredData.length;
+        
+        // Sonuç yoksa estetik mesaj göster
+        if (filteredData.length === 0) {
+            const tbody = document.querySelector("#basvuruTable tbody");
+            tbody.innerHTML = `<tr>
+                <td colspan='11'>
+                    <div style="text-align: center; padding: 15px; color: #721c24; background-color: #f8d7da; 
+                    border-radius: 5px; margin: 10px 0;">
+                        <span style="margin-right: 10px;">&#9888;</span>
+                        <span>Aradığınız Kriterlere Uygun Sonuç Bulunamadı!!</span>
+                    </div>
+                </td>
+            </tr>`;
+            
+            // Sayfalama butonlarını gizle
+            const paginationContainer = document.querySelector('.pagination');
+            if (paginationContainer) {
+                paginationContainer.style.display = 'none';
+            }
+        } else {
+            // Sayfa numarasını 1'e sıfırla
+            currentPage = 1;
+            
+            // Sayfalama butonlarını güncelle
+            displayPagination();
+            
+            // İlk sayfayı göster
+            displayData(currentPage);
+        }
+    })
+    .catch(error => {
+        console.error("Filtreleme hatası:", error);
+        
+        // Hata mesajını estetik olarak göster
+        const tbody = document.querySelector("#basvuruTable tbody");
+        tbody.innerHTML = `<tr>
+            <td colspan='11'>
+                <div style="text-align: center; padding: 15px; color: #721c24; background-color: #f8d7da; 
+                border-radius: 5px; margin: 10px 0;">
+                    <span style="margin-right: 10px;">&#9888;</span>
+                    <span>Aradığınız Kriterlere Uygun Sonuç Bulunamadı!</span>
+                </div>
+            </td>
+        </tr>`;
+        
+        // Sayfalama butonlarını gizle
+        const paginationContainer = document.querySelector('.pagination');
+        if (paginationContainer) {
+            paginationContainer.style.display = 'none';
+        }
+    });
+}
+    </script>
+
+
+<button class="logout-btn" onclick="confirmLogout()">Çıkış</button>
+
+<script>
+    function confirmLogout() {
+        const confirmation = confirm("Çıkış yapmak istediğinize emin misiniz?");
+        if (confirmation) {
+            window.location.href = "admin.html"; // Çıkış işlemi
+        }
+    }
+</script>
+
+
+</body>
+
+</html>
