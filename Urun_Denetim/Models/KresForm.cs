@@ -17,6 +17,10 @@ public class KresForm
     public string ilce { get; set; }
     public string mahalle { get; set; }
     public DateTime OlusturulmaTarihi { get; set; }
+    public string? isturu { get; set; } = " Ramazan Başvuru Formu";
+    public string? durumu { get; set; }
+    public string? dagıtım { get; set; } 
+    public string? SonucAciklama { get; set; }
     public bool Aktif { get; set; } = true;
 
     public KresForm()
@@ -26,17 +30,17 @@ public class KresForm
 }
 
 // DateOnly için JSON Dönüştürücü
-public class JsonDateOnlyConverter : JsonConverter<DateOnly>
-{
-    private const string Format = "dd-MM-yyyy";
+//public class JsonDateOnlyConverter : JsonConverter<DateOnly>
+//{
+//    private const string Format = "dd-MM-yyyy";
 
-    public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        return DateOnly.ParseExact(reader.GetString(), Format, null);
-    }
+//    public override DateOnly Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+//    {
+//        return DateOnly.ParseExact(reader.GetString(), Format, null);
+//    }
 
-    public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options)
-    {
-        writer.WriteStringValue(value.ToString(Format));
-    }
-}
+//    public override void Write(Utf8JsonWriter writer, DateOnly value, JsonSerializerOptions options)
+//    {
+//        writer.WriteStringValue(value.ToString(Format));
+//    }
+//}

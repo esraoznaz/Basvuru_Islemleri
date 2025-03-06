@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Urun_Denetim.Data;
 
@@ -11,9 +12,11 @@ using Urun_Denetim.Data;
 namespace Urun_Denetim.Migrations
 {
     [DbContext(typeof(UygulamaDbContext))]
-    partial class UygulamaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303070642_yeniEklemeler")]
+    partial class yeniEklemeler
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,15 +40,18 @@ namespace Urun_Denetim.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SonucAciklama")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("dagıtım")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateOnly>("dtarihi")
                         .HasColumnType("date");
 
                     b.Property<string>("durumu")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ilce")
@@ -57,6 +63,7 @@ namespace Urun_Denetim.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("isturu")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("mahalle")

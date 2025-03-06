@@ -28,41 +28,41 @@ namespace Urun_Denetim.Controllers
             _httpContextAccessor = httpContextAccessor;
         }
 
-        //[HttpGet]
-        //public IActionResult GetKresForm()
-        //{
-        //    var kresForms = _context.KresForms.Where(f=> f.Aktif==true).ToList();
 
-        //    return Ok(kresForms);
-
-        //}
-        //[HttpGet]
-        //public IActionResult GetKresForm()
-        //{
-        //    var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    _loggerService.Log(kullaniciId, "GET", "/api", "Kres form verileri çekildi.");
-
-        //    var kresForms = _context.KresForms.Where(f => f.Aktif == true).ToList();
-        //    return Ok(kresForms);
-        //}
-
+        //asekron get metodu
         [HttpGet]
-        public IActionResult GetKresForm()
+        public async Task<IActionResult> GetKresForm()
         {
             var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
 
             _loggerService.Log(kullaniciId, "GET", "/api", "Kres form verileri çekildi.", ipAdresi);
 
-            var kresForms = _context.KresForms.Where(f => f.Aktif == true).ToList();
+            var kresForms = await _context.KresForms.Where(f => f.Aktif == true).ToListAsync();
             return Ok(kresForms);
         }
 
+        //sekron get metodu bu kodda doğru çalışan bir kod
+
+        //[HttpGet]
+        //public IActionResult GetKresForm()
+        //{
+        //    var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        //    var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
+
+        //    _loggerService.Log(kullaniciId, "GET", "/api", "Kres form verileri çekildi.", ipAdresi);
+
+        //    var kresForms = _context.KresForms.Where(f => f.Aktif == true).ToList();
+        //    return Ok(kresForms);
+        //}
+
+
+        // askron get metodu olarak düzenlenmiş hali
         [HttpGet]
         [Route("Getir/{id:int}")]
-        public IActionResult GetVatandasById(int id)
+        public async Task<IActionResult> GetVatandasById(int id)
         {
-            var Formget = _context.KresForms.Find(id);
+            var Formget = await _context.KresForms.FindAsync(id);
             if (Formget == null)
             {
                 return NotFound();
@@ -140,7 +140,8 @@ namespace Urun_Denetim.Controllers
                 dtarihi = kresFormDto.dtarihi,
                 tc = kresFormDto.tc,
                 ilce = kresFormDto.ilce,
-                mahalle = kresFormDto.mahalle
+                mahalle = kresFormDto.mahalle,
+                isturu=kresFormDto.isturu
             };
 
             _context.KresForms.Add(FormEntitiy);
@@ -148,113 +149,6 @@ namespace Urun_Denetim.Controllers
 
             return Ok(FormEntitiy);
         }
-
-
-
-        //[HttpGet]
-        //[Route("Filtre")]
-        //public IActionResult GetKresFormByFilter([FromQuery] string? isim, [FromQuery] string? soyisim, [FromQuery] string? tcNo)
-        //{
-        //    var query = _context.KresForms.AsQueryable();
-        //    var filtreler = new List<string>();
-
-        //    // Arama kriterlerini loglamak için ekledik
-        //    if (!string.IsNullOrEmpty(isim))
-        //    {
-        //        query = query.Where(f => f.isim.Contains(isim));
-        //        filtreler.Add($"İsim: {isim}");
-        //    }
-        //    else
-        //    {
-        //        filtreler.Add("İsim: (Boş)");
-        //    }
-
-        //    if (!string.IsNullOrEmpty(soyisim))
-        //    {
-        //        query = query.Where(f => f.soyisim.Contains(soyisim));
-        //        filtreler.Add($"Soyisim: {soyisim}");
-        //    }
-        //    else
-        //    {
-        //        filtreler.Add("Soyisim: (Boş)");
-        //    }
-
-        //    if (!string.IsNullOrEmpty(tcNo))
-        //    {
-        //        query = query.Where(f => f.tc == tcNo);
-        //        filtreler.Add($"TC No: {tcNo}");
-        //    }
-        //    else
-        //    {
-        //        filtreler.Add("TC No: (Boş)");
-        //    }
-
-        //    var results = query.ToList();
-        //    var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonim";
-        //    var detay = results.Count > 0
-        //        ? $"Arama yapıldı. {string.Join(", ", filtreler)}"
-        //        : $"Arama yapıldı ancak sonuç bulunamadı. {string.Join(", ", filtreler)}";
-
-        //    // Log kaydı ekleniyor
-        //    var log = new KullaniciLoglari
-        //    {
-        //        KullaniciId = kullaniciId,
-        //        IslemTipi = "GET",
-        //        EndPoint = "/api/Filtre",
-        //        Tarih = DateTime.Now,
-        //        Detay = detay
-        //    };
-
-        //    _context.KullaniciLoglaris.Add(log);
-        //    _context.SaveChanges();
-
-        //    // Eğer sonuç yoksa 404 Not Found dönelim
-        //    if (results.Count == 0)
-        //    {
-        //        return NotFound(new { mesaj = "Sonuç bulunamadı", filtreler = filtreler });
-        //    }
-
-        //    return Ok(results);
-        //}
-
-
-
-        //[AllowAnonymous]
-        //[HttpPost]
-        //public IActionResult PostKresForm(KresFormEkleDto kresFormDto)
-        //{
-        //    var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    _loggerService.Log(kullaniciId, "POST", "/api/", $"Yeni kayıt eklendi: {kresFormDto.tc}");
-
-        //    if (string.IsNullOrEmpty(kresFormDto.tc))
-        //    {
-        //        return BadRequest("TC Kimlik Numarası zorunludur.");
-        //    }
-
-        //    var mevcutBasvuru = _context.KresForms.FirstOrDefault(f => f.tc == kresFormDto.tc);
-        //    if (mevcutBasvuru != null)
-        //    {
-        //        return Conflict("Bu TC Kimlik Numarası ile daha önce başvuru yapılmış.");
-        //    }
-
-        //    var FormEntitiy = new KresForm()
-        //    {
-        //        isim = kresFormDto.isim,
-        //        soyisim = kresFormDto.soyisim,
-        //        telno = kresFormDto.telno,
-        //        dtarihi = kresFormDto.dtarihi,
-        //        tc = kresFormDto.tc,
-        //        ilce = kresFormDto.ilce,
-        //        mahalle = kresFormDto.mahalle
-        //    };
-
-        //    _context.KresForms.Add(FormEntitiy);
-        //    _context.SaveChanges();
-
-        //    return Ok(FormEntitiy);
-        //}
-
-
 
 
 
@@ -315,38 +209,6 @@ namespace Urun_Denetim.Controllers
             return Ok(formBasvuru);
         }
 
-
-
-        //[HttpPut("Aktif/{id:int}")]
-        //public IActionResult GuncelleAktif(int id)
-        //{
-        //    var formAktif = _context.KresForms.Find(id);
-        //    if (formAktif is null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    bool oncekiDurum = formAktif.Aktif;
-        //    formAktif.Aktif = !formAktif.Aktif;
-
-        //    _context.SaveChanges();
-
-
-        //    var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonim";
-        //    var detay = $"Önceki Durum: {oncekiDurum}, Yeni Durum: {formAktif.Aktif}";
-
-        //    var log = new KullaniciLoglari
-        //    {
-        //        KullaniciId = kullaniciId,
-        //        IslemTipi = "PUT",
-        //        EndPoint = $"/api/Aktif/{id}",
-        //        Detay = detay
-        //    };
-
-        //    _context.KullaniciLoglaris.Add(log);
-        //    _context.SaveChanges();
-
-        //    return Ok(formAktif);
-        //}
 
         [HttpPut("Aktif/{id:int}")]
         public IActionResult GuncelleAktif(int id)
