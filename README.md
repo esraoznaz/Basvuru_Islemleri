@@ -1,0 +1,1 @@
+Bu projeyi ben uzun dönem stajımda yapmıştım burda yapılmak istenen şey web sitesi değildi. Basit bir web sitesi ile iis de sayfayı yayınladıktan sonra sayfa geliştirmek için değil diğer stajer arkadaşım benim veritabanıma erişmesi için yazdığım api ve token controller işlemleri için kullanılmıştır.
