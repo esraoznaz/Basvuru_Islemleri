@@ -1,62 +1,58 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Urun_Denetim.Data;
-using Urun_Denetim.Models;
-using Urun_Denetim.Models.FormApi;
+
+using Basvurular.Entities.DTOs;
+using Basvurular.Entities;
+using Basvurular.Business;
+
+
 namespace Urun_Denetim.Controllers
 {
     [Route("api/Dagitim")]
     [ApiController]
-    [Authorize(Roles="Dagitim, Admin")]
+    [Authorize(Policy = "DagitimOrAdmin")]
     public class DagitimController : ControllerBase
     {
-        private readonly UygulamaDbContext _context;
-
-        public DagitimController(UygulamaDbContext context)
+        private readonly DagitimService _service;
+        public DagitimController(DagitimService service)
         {
-            _context = context;
+            _service = service;
         }
+
+
+        //[HttpGet("test-token")]
+        //[Authorize]  // Authorization header'ını kontrol et
+        //public IActionResult TestToken()
+        //{
+        //    var authHeader = Request.Headers["Authorization"].FirstOrDefault();
+        //    return Ok(new { AuthorizationHeader = authHeader });
+        //}
+
 
         [HttpGet]
-        public IActionResult GetDagitim()
+        public async Task<IActionResult> GetAllForms()
         {
-            var dagitim = _context.KresForms
-                .Where(f => f.Aktif == true && f.durumu=="Geçti")
-                .Select(f => new
-                {
-                    f.KresFormId,
-                    f.isim,
-                    f.soyisim,
-                    f.tc,
-                    f.telno,
-                    f.ilce,
-                    f.mahalle,
-                    f.isturu,
-                    f.dagıtım,
-                    
-                })
-                .ToList();
-
-            return Ok(dagitim);
+            var forms = await _service.GetActiveDagitmAsync();
+            return Ok(forms);
         }
 
 
-        [HttpPut]
-        [Route("Durumu/{id:int}")]
-        public IActionResult UpdateDurum(int id, DagitimGuncelleDto dagitimguncelle)
+
+        [HttpPut("Durumu/{id:int}")]
+        public async Task<IActionResult> UpdateForm(int id, DagitimGuncelleDto dagitimguncelle)
         {
-            var form = _context.KresForms.Find(id);
-            if (form == null)
+            // Servisten gelen sonucu alıyoruz
+            var updatedForm = await _service.UpdateDagitimStatusAsync(id, dagitimguncelle);
+
+            // Eğer form bulunamadıysa 404 döndür
+            if (updatedForm == null)
             {
-                return NotFound();
+                return NotFound("Form bulunamadı.");
             }
 
-            form.dagıtım = dagitimguncelle.dagıtım;
-            
-
-            _context.SaveChanges();
-            return NoContent();
+            // Başarıyla güncellenen formu döndürüyoruz
+            return Ok(updatedForm);
         }
 
     }

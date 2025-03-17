@@ -1,14 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Urun_Denetim.Models;
-using Urun_Denetim.Data;
+using Basvurular.Entities;
+using Basvurular.DataAccess;    
+
 
 namespace Urun_Denetim.Controllers
 {
     public class MarkaController : Controller
     {
-        private readonly UygulamaDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public MarkaController(UygulamaDbContext context)
+        public MarkaController(ApplicationDbContext context)
         {
             _context = context;
         }

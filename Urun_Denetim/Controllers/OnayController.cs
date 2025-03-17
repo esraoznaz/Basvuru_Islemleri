@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Basvurular.Business;
+using Basvurular.Entities.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Urun_Denetim.Data;
-using Urun_Denetim.Models;
-using Urun_Denetim.Models.FormApi;
+using Basvurular.DataAccess;
 
 
 
@@ -12,60 +12,40 @@ namespace Urun_Denetim.Controllers
 {
     [Route("api/Onay")]
     [ApiController]
-    [Authorize(Roles = "Onay, Admin")]
+    [Authorize(Policy = "OnayOrAdmin")]
     public class OnayController : ControllerBase
     {
 
-        private readonly UygulamaDbContext _context;
-        public OnayController(UygulamaDbContext context)
+        private readonly OnayService _service;
+        public OnayController(OnayService service)
         {
-            _context = context;
+            _service = service;
         }
 
         [HttpGet]
-        public IActionResult GetOnay()
+        public async Task<IActionResult> GetAllForms()
         {
-            var onay = _context.KresForms
-                .Where(f => f.Aktif == true)
-                .Select(f => new
-                {
-                    f.KresFormId,
-                    f.isim,
-                    f.soyisim,
-                    f.telno,
-                    f.dtarihi,
-                    f.tc,
-                    f.ilce,
-                    f.mahalle,
-                    f.isturu,
-                    f.durumu,
-                    f.SonucAciklama
-                })
-                .ToList();
-
-            return Ok(onay);
+            var forms = await _service.GetActiveOnayAsync();
+            return Ok(forms);
         }
 
-        [HttpPut]
-        [Route("Durum/{id:int}")]
-        public IActionResult UpdateDurum(int id, OnayGuncelleDto onayguncelle)
+
+
+        [HttpPut("Durum/{id:int}")]
+        public async Task<IActionResult> UpdateForm(int id, OnayGuncelleDto onayguncelle)
         {
-            var form = _context.KresForms.Find(id);
-            if (form == null)
+            // Servisten gelen sonucu alıyoruz
+            var updatedForm = await _service.UpdateOnayStatusAsync(id, onayguncelle);
+
+            // Eğer form bulunamadıysa 404 döndür
+            if (updatedForm == null)
             {
-                return NotFound();
+                return NotFound("Form bulunamadı.");
             }
 
-            form.durumu = onayguncelle.durumu;
-            form.SonucAciklama = onayguncelle.SonucAciklama;
-
-            _context.SaveChanges();
-
-            return Ok();
+            // Başarıyla güncellenen formu döndürüyoruz
+            return Ok(updatedForm);
         }
-
-
-
 
 
 

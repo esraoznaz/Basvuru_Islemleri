@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using Urun_Denetim.Data;
-using Urun_Denetim.Models.FormApi;
+
+using Basvurular.Entities.DTOs;
+using Basvurular.DataAccess;
+using Basvurular.Entities;
+using Basvurular.Business;
 using Urun_Denetim.Models;
 
 namespace Urun_Denetim.Controllers
@@ -11,26 +14,26 @@ namespace Urun_Denetim.Controllers
     [ApiController]
     public class AdminController : ControllerBase
     {
-        private readonly UygulamaDbContext _context;
+        private readonly AdminService _service;
 
-        public AdminController(UygulamaDbContext dbContext)
+        public AdminController(AdminService service)
         {
-            this._context = dbContext;
+            _service = service;
         }
 
         [HttpGet]
-        public IActionResult GetAdmin()
+        public async Task <IActionResult> GetAdmin()
         {
-            var Admin = _context.Adminses.ToList();
+            var forms = await _service.GetAllAsync();
+            return Ok(forms);
 
-            return Ok(Admin);
 
         }
 
         [HttpPost("login")]
-        public IActionResult AdminLogin([FromBody] AdminLoginDto adminLoginDto)
+        public async Task <IActionResult> AdminLogin([FromBody] AdminLoginDto adminLoginDto)
         {
-            var admin = _context.Adminses.FirstOrDefault(f => f.AdminAd == adminLoginDto.AdminAd && f.AdminSifre == adminLoginDto.AdminSifre);
+            var admin = await _service.AdminLoginAsync(adminLoginDto);
 
             if (admin == null)
             {

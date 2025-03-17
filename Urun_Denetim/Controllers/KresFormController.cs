@@ -1,260 +1,88 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+﻿using Basvurular.Business;
+using Basvurular.DataAccess;
+using Basvurular.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using Urun_Denetim.Data;
+using System.Threading.Tasks;
+using Basvurular.Entities.DTOs;
 using Urun_Denetim.Models;
-using Urun_Denetim.Models.FormApi;
+
+
 
 namespace Urun_Denetim.Controllers
 {
-    
     [Route("/api/")]
     [ApiController]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Policy = "Admin")]
     public class KresFormController : ControllerBase
     {
-        private readonly UygulamaDbContext _context;
-        private readonly ILoggerService _loggerService;
-        private readonly ILogger<KresFormController> _logger;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly KresFormService _service;
 
-        public KresFormController(UygulamaDbContext context, ILogger<KresFormController> logger, ILoggerService loggerService, IHttpContextAccessor httpContextAccessor)
+        public KresFormController(KresFormService service)
         {
-            _context = context;         
-            _logger = logger;
-            _loggerService = loggerService;
-            _httpContextAccessor = httpContextAccessor;
+            _service = service;
         }
 
+        
 
-        //asekron get metodu
         [HttpGet]
-        public async Task<IActionResult> GetKresForm()
+        public async Task<IActionResult> GetAllForms()
         {
-            var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
-
-            _loggerService.Log(kullaniciId, "GET", "/api", "Kres form verileri çekildi.", ipAdresi);
-
-            var kresForms = await _context.KresForms.Where(f => f.Aktif == true).ToListAsync();
-            return Ok(kresForms);
+            var forms = await _service.GetAllFormsAsync();
+            return Ok(forms);
         }
 
-        //sekron get metodu bu kodda doğru çalışan bir kod
-
-        //[HttpGet]
-        //public IActionResult GetKresForm()
-        //{
-        //    var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
-
-        //    _loggerService.Log(kullaniciId, "GET", "/api", "Kres form verileri çekildi.", ipAdresi);
-
-        //    var kresForms = _context.KresForms.Where(f => f.Aktif == true).ToList();
-        //    return Ok(kresForms);
-        //}
-
-
-        // askron get metodu olarak düzenlenmiş hali
-        [HttpGet]
-        [Route("Getir/{id:int}")]
-        public async Task<IActionResult> GetVatandasById(int id)
+        [HttpGet("Getir/{id:int}")]
+        public async Task<IActionResult> GetFormById(int id)
         {
-            var Formget = await _context.KresForms.FindAsync(id);
-            if (Formget == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(Formget);
+            var form = await _service.GetFormByIdAsync(id);
+            if (form == null) return NotFound();
+            return Ok(form);
         }
 
-
-        [HttpGet]
-        [Route("Filtre")]
-        public IActionResult GetKresFormByFilter([FromQuery] string? isim, [FromQuery] string? soyisim, [FromQuery] string? tcNo)
+        [HttpGet("Filtre")]
+        public async Task<IActionResult> GetByFilterAsync(string? isim, string? soyisim, string? tcNo)
         {
-            var query = _context.KresForms.AsQueryable();
-            var filtreler = new List<string>();
+            var result = await _service.GetFormsByFilterAsync(isim, soyisim, tcNo);
 
-            if (!string.IsNullOrEmpty(isim))
+            if (!result.Any()) // Eğer sonuç bulunmazsa
             {
-                query = query.Where(f => f.isim.Contains(isim));
-                filtreler.Add($"İsim: {isim}");
-            }
-            if (!string.IsNullOrEmpty(soyisim))
-            {
-                query = query.Where(f => f.soyisim.Contains(soyisim));
-                filtreler.Add($"Soyisim: {soyisim}");
-            }
-            if (!string.IsNullOrEmpty(tcNo))
-            {
-                query = query.Where(f => f.tc == tcNo);
-                filtreler.Add($"TC No: {tcNo}");
+                return NotFound(new { mesaj = "Sonuç bulunamadı" }); // 404 döndür
             }
 
-            var results = query.ToList();
-            var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonim";
-            var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
-            var detay = results.Count > 0
-                ? $"Arama yapıldı. {string.Join(", ", filtreler)}"
-                : $"Arama yapıldı ancak sonuç bulunamadı. {string.Join(", ", filtreler)}";
-
-            _loggerService.Log(kullaniciId, "GET", "/api/Filtre", detay, ipAdresi);
-
-            if (results.Count == 0)
-            {
-                return NotFound(new { mesaj = "Sonuç bulunamadı", filtreler = filtreler });
-            }
-
-            return Ok(results);
+            return Ok(result); // 200 OK ile sonuçları döndür
         }
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult PostKresForm(KresFormEkleDto kresFormDto)
+        public async Task<IActionResult> AddForm(KresFormEkleDto kresFormDto)
         {
-            //var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
-
-            _loggerService.Log("Anonim", "POST", "/api/", $"Yeni kayıt eklendi: {kresFormDto.tc}", ipAdresi);
-
-            if (string.IsNullOrEmpty(kresFormDto.tc))
-            {
-                return BadRequest("TC Kimlik Numarası zorunludur.");
-            }
-
-            var mevcutBasvuru = _context.KresForms.FirstOrDefault(f => f.tc == kresFormDto.tc);
-            if (mevcutBasvuru != null)
-            {
-                return Conflict("Bu TC Kimlik Numarası ile daha önce başvuru yapılmış.");
-            }
-
-            var FormEntitiy = new KresForm()
-            {
-                isim = kresFormDto.isim,
-                soyisim = kresFormDto.soyisim,
-                telno = kresFormDto.telno,
-                dtarihi = kresFormDto.dtarihi,
-                tc = kresFormDto.tc,
-                ilce = kresFormDto.ilce,
-                mahalle = kresFormDto.mahalle,
-                isturu=kresFormDto.isturu
-            };
-
-            _context.KresForms.Add(FormEntitiy);
-            _context.SaveChanges();
-
-            return Ok(FormEntitiy);
+            var addedForm = await _service.AddFormAsync(kresFormDto);
+            return Ok(addedForm);
         }
 
-
-
-        [HttpPut]
-        [Route("{id:int}")]
-        public IActionResult GuncelleForm(int id, FormGuncelleDto guncelleformDto)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateForm(int id, FormGuncelleDto guncelleformDto)
         {
-            var formBasvuru = _context.KresForms.Find(id);
-            if (formBasvuru is null)
-            {
-                return NotFound();
-            }
+            var updatedForm = await _service.UpdateFormAsync(id, guncelleformDto);
 
-            var eskiDegerler = new
-            {
-                formBasvuru.isim,
-                formBasvuru.soyisim,
-                formBasvuru.telno,
-                formBasvuru.dtarihi,
-                formBasvuru.tc,
-                formBasvuru.ilce,
-                formBasvuru.mahalle
-            };
-
-            formBasvuru.isim = guncelleformDto.isim;
-            formBasvuru.soyisim = guncelleformDto.soyisim;
-            formBasvuru.telno = guncelleformDto.telno;
-            formBasvuru.dtarihi = guncelleformDto.dtarihi;
-            formBasvuru.tc = guncelleformDto.tc;
-            formBasvuru.ilce = guncelleformDto.ilce;
-            formBasvuru.mahalle = guncelleformDto.mahalle;
-
-            _context.SaveChanges();
-
-            var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonim";
-            var detay = $"Önceki: {System.Text.Json.JsonSerializer.Serialize(eskiDegerler)} | Yeni: {System.Text.Json.JsonSerializer.Serialize(guncelleformDto)}";
-            var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
-            // IP adresini almak
-            //var ipAdresi = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            // Log kaydını eklemek
-            var log = new KullaniciLoglari
-            {
-                KullaniciId = kullaniciId,
-                IslemTipi = "PUT",
-                EndPoint = $"/api/{id}",
-                Detay = detay,
-                IpAdresi=ipAdresi
-            };
-
-
-            _context.KullaniciLoglaris.Add(log);
-            _context.SaveChanges();
-
-            // Log metodunu ipAdresi parametresiyle çağırma
-            _loggerService.Log(kullaniciId, "PUT", $"/api/{id}", detay, ipAdresi);
-
-            return Ok(formBasvuru);
+            return Ok(updatedForm);
         }
 
-
+        
         [HttpPut("Aktif/{id:int}")]
-        public IActionResult GuncelleAktif(int id)
+        public async Task<IActionResult> ToggleAktif(int id)
         {
-            var formAktif = _context.KresForms.Find(id);
-            if (formAktif is null)
+            var result = await _service.ToggleAktifAsync(id);
+
+            // Eğer result null ise (aslında null dönmemeli çünkü KeyNotFoundException fırlatılıyor)
+            if (result == null)
             {
-                return NotFound();
+                return NotFound(); // Bulunamadı
             }
 
-            bool oncekiDurum = formAktif.Aktif;
-            formAktif.Aktif = !formAktif.Aktif;
-
-            _context.SaveChanges();
-
-            var kullaniciId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "Anonim";
-            var detay = $"Önceki Durum: {oncekiDurum}, Yeni Durum: {formAktif.Aktif}";
-            var ipAdresi = _httpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString() ?? "Bilinmiyor";
-            // IP adresini almak
-            //var ipAdresi = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            if (string.IsNullOrEmpty(ipAdresi))
-            {
-                ipAdresi = HttpContext.Connection.RemoteIpAddress?.ToString();
-            }
-
-            // Log kaydını eklemek
-            var log = new KullaniciLoglari
-            {
-                KullaniciId = kullaniciId,
-                IslemTipi = "PUT",
-                EndPoint = $"/api/Aktif/{id}",
-                Detay = detay,
-                IpAdresi = ipAdresi
-            };
-
-            _context.KullaniciLoglaris.Add(log);
-            _context.SaveChanges();
-
-            // Log metodunu ipAdresi parametresiyle çağırma
-            _loggerService.Log(kullaniciId, "PUT", $"/api/Aktif/{id}", detay, ipAdresi);
-
-            return Ok(formAktif);
+            // Güncelleme başarılıysa
+            return Ok(result);
         }
-
-
-
-
     }
 }

@@ -2,12 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Urun_Denetim.Models;
-using Urun_Denetim.Data;
+using Basvurular.DataAccess;
+using Basvurular.Business;
+using Basvurular.Entities;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+
 namespace Urun_Denetim.Controllers
 {
     [Route("api/Token")]
@@ -16,59 +19,30 @@ namespace Urun_Denetim.Controllers
 
     public class TokenController : ControllerBase
     {
-        private readonly JwtAyarlari _jwtAyarlari;
-        private readonly UygulamaDbContext _context;
+        private readonly TokenService _service;
 
-
-        public TokenController(IOptions<JwtAyarlari> jwtAyarlari, UygulamaDbContext context)
+        public TokenController(TokenService service)
         {
-            _jwtAyarlari = jwtAyarlari.Value;
-            _context = context;
-
+            _service = service;
         }
         [AllowAnonymous]
         [HttpPost("Olustur")]
-        public IActionResult Giris([FromBody] Admins request)
+        public IActionResult Login([FromBody] Admins admin)
         {
-            var yetki = KimlikDenetimiYap(request);
-            if (yetki == null)
+            if (admin == null || string.IsNullOrWhiteSpace(admin.AdminAd) || string.IsNullOrWhiteSpace(admin.AdminSifre))
             {
-                return NotFound("Kullanıcı Bulunamadı.");
+                return BadRequest("Kullanıcı adı ve şifre gereklidir.");
             }
 
-            var token = TokenOlustur(yetki);
+            var token = _service.Authenticate(admin.AdminAd, admin.AdminSifre);
+            if (token == null)
+            {
+                return Unauthorized("Geçersiz kullanıcı adı veya şifre.");
+            }
+
+            //return Ok(new { Token = token });
             return Ok(token);
         }
-
-
-        private string TokenOlustur(Admins yetki)
-        {
-            if (_jwtAyarlari.Key == null)
-            {
-                throw new Exception("Jwt ayarlarınındaki Key değeri null olmaz");
-            }
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtAyarlari.Key));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var claimDizisi = new[]
-            {
-                new Claim(ClaimTypes.NameIdentifier,yetki.AdminAd),
-                new Claim(ClaimTypes.Role,yetki.AdminYetki!)
-            };
-            var token = new JwtSecurityToken(_jwtAyarlari.Issuer,
-                _jwtAyarlari.Audience,
-                claimDizisi,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: credentials);
-            return new JwtSecurityTokenHandler().WriteToken(token);
-
-        }
-
-
-        private Admins? KimlikDenetimiYap(Admins request)
-        {
-            return _context.Adminses.FirstOrDefault(x => x.AdminAd.ToLower() == request.AdminAd && x.AdminSifre == request.AdminSifre);
-        }
-
 
     }
 }
