@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using Basvurular.Entities;
 using Urun_Denetim.Models;
 
 namespace Urun_Denetim.Controllers

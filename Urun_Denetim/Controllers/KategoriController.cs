@@ -1,14 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Urun_Denetim.Data;
-using Urun_Denetim.Models;
+using Basvurular.DataAccess;
+using Basvurular.Entities;
 
 namespace Urun_Denetim.Controllers
 {
     public class KategoriController : Controller
     {
-        private readonly UygulamaDbContext _context;
+        private readonly ApplicationDbContext _context;
 
-        public KategoriController(UygulamaDbContext context)
+        public KategoriController(ApplicationDbContext context)
         {
             _context = context;
         }
